@@ -3,594 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cabin Crew Briefing Tool</title>
+    <title>Cabin Crew Briefing Tool v1.4</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
             font-family: Arial, sans-serif;
+            margin: 20px;
             line-height: 1.6;
-            padding: 20px;
-            background: #f0f2f5;
         }
-
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-
         .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
-
-        h3 {
-            margin-bottom: 15px;
-            color: #2196F3;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
         textarea {
-            resize: vertical;
-            min-height: 100px;
+            width: 100%;
+            height: 200px;
         }
-
-        button {
-            background: #2196F3;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-
-        button:hover {
-            background: #1976D2;
-        }
-
-        .version-tag {
-            font-size: 12px;
-            color: #666;
-            margin-left: 10px;
-        }
-
-        .position-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .position-section {
-            margin-top: 20px;
-        }
-
-        .position-section-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            grid-column: 1 / -1;
-            background: #f5f5f5;
+        input, select {
+            margin: 5px 0;
             padding: 5px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .reset-btn {
+            background-color: #ff9999;
+            border: none;
+            color: white;
             border-radius: 4px;
         }
-
-        .parsed-crew-container {
-            margin-top: 15px;
-            padding: 10px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .email-preview {
-            white-space: pre-wrap;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .upgrade-prices-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .sector-input {
-            margin-bottom: 15px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        #copyButton {
-            display: none;
-            background: #4CAF50;
-        }
-
-        #copyButton:hover {
-            background: #45a049;
-        }
-
-        input::placeholder {
+        #ifrTarget::placeholder {
             color: #999;
-            opacity: 0.7;
+            font-style: italic;
         }
-
-        @media (max-width: 768px) {
-            .position-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .upgrade-prices-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .position-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .text-uppercase {
-            text-transform: uppercase;
+        .leaders-section {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Cabin Crew Briefing Tool</h1>
+        <h1>Cabin Crew Briefing Tool v1.4</h1>
         
+        <button type="button" onclick="resetForm()" class="reset-btn">Reset Form</button>
+
         <div class="section">
-            <h3>Flight Details</h3>
-            <div class="input-group">
-                <label>Flight Number:</label>
-                <input type="text" id="flightNumber" placeholder="e.g. EK123/124">
-            </div>
-            <div class="input-group">
-                <label>Aircraft Type:</label>
-                <select id="aircraftType" onchange="updatePositionSlots()">
-                    <option value="">Select Aircraft Type</option>
-                    <option value="B777">Boeing 777</option>
-                    <option value="A380">Airbus 380</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Route:</label>
-                <input type="text" id="route" class="text-uppercase" placeholder="e.g. DXB-LHR-DXB">
-            </div>
-            <div class="input-group">
-                <label>Flight Date:</label>
-                <input type="date" id="flightDate">
-            </div>
-            <div class="input-group">
-                <label>Your Name:</label>
-                <input type="text" id="yourName" placeholder="Enter your name">
-            </div>
+            <h2>Flight Details</h2>
+            <label>Flight Number:</label><br>
+            <input type="text" id="flightNumber" value="EK" required><br>
+            
+            <label>Aircraft Type:</label><br>
+            <select id="aircraftType" required>
+                <option value="">Select Aircraft Type</option>
+                <option value="B777">Boeing 777</option>
+                <option value="A380">Airbus 380</option>
+            </select><br>
+            
+            <label>Route:</label><br>
+            <input type="text" id="route" required><br>
+            
+            <label>Flight Date:</label><br>
+            <input type="date" id="flightDate" required><br>
+            
+            <label>Your Name:</label><br>
+            <input type="text" id="yourName" oninput="capitalizeFirstLetter(this)" required><br>
         </div>
 
         <div class="section">
-            <h3>Crew Data</h3>
-            <div class="input-group">
-                <label>Paste Crew List Here:</label>
-                <textarea id="crewList" placeholder="Paste crew data here..."></textarea>
-            </div>
-            <button onclick="parseCrew()" class="parse-button">Parse Crew Data <span class="version-tag">v1.3</span></button>
-            <div id="parsedCrew" class="parsed-crew-container"></div>
+            <h2>Crew Data</h2>
+            <textarea id="crewList" placeholder="Paste Crew List Here:"></textarea><br>
+            <button onclick="parseCrewData()">Parse Crew Data</button>
+        </div>
+
+        <div class="leaders-section" id="leadersSection"></div>
+
+        <div class="section">
+            <h2>Position Allocation</h2>
+            <div id="positionAllocation"></div>
+            <label>Sector Designator:</label><br>
+            <input type="text" id="sectorDesignator"><br>
         </div>
 
         <div class="section">
-            <h3>Position Allocation</h3>
-            <div class="sector-input">
-                <label>Sector Designator:</label>
-                <input type="text" id="sectorDesignator" class="text-uppercase" placeholder="e.g. DXB-LHR">
-            </div>
-            <div id="positionAllocation" class="position-grid">
-                <!-- Will be populated by JavaScript -->
-            </div>
+            <h2>Additional Information</h2>
+            <label>IFR Target:</label><br>
+            <input type="text" id="ifrTarget" placeholder="ENTER TARGET eg DXB-LHR 9999AED"><br>
+            
+            <label>Upgrade Prices:</label><br>
+            <input type="text" id="upgradePrices"><br>
+            
+            <label>Legroom:</label><br>
+            <input type="text" id="legroom"><br>
+            
+            <label>Bulkhead:</label><br>
+            <input type="text" id="bulkhead"><br>
+            
+            <label>Y/J:</label><br>
+            <input type="text" id="yj"><br>
+            
+            <label>J/F:</label><br>
+            <input type="text" id="jf"><br>
         </div>
 
         <div class="section">
-            <h3>Additional Information</h3>
-            <div class="input-group">
-                <label>IFR Target:</label>
-                <input type="text" id="ifrTarget" class="text-uppercase" placeholder="e.g. DXB-LHR 8600AED">
-            </div>
-            <div class="input-group">
-                <label>Upgrade Prices:</label>
-                <div class="upgrade-prices-grid">
-                    <div class="input-group">
-                        <label>Legroom:</label>
-                        <input type="text" id="legroom" class="text-uppercase" placeholder="Enter legroom price">
-                    </div>
-                    <div class="input-group">
-                        <label>Bulkhead:</label>
-                        <input type="text" id="bulkhead" class="text-uppercase" placeholder="Enter bulkhead price">
-                    </div>
-                    <div class="input-group">
-                        <label>Y/J:</label>
-                        <input type="text" id="yj" class="text-uppercase" placeholder="Enter Y/J price">
-                    </div>
-                    <div class="input-group">
-                        <label>J/F:</label>
-                        <input type="text" id="jf" class="text-uppercase" placeholder="Enter J/F price">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>Generate Email</h3>
-            <div class="button-group">
-                <button onclick="generateEmail()">Generate Briefing Email</button>
-                <button id="copyButton" onclick="copyEmail()" style="display: none;">Copy Email</button>
-            </div>
-            <div id="emailPreview" class="email-preview"></div>
+            <button onclick="generateEmail()">Generate Briefing Email</button>
+            <button onclick="copyEmail()">Copy Email</button>
+            <div id="emailOutput"></div>
         </div>
     </div>
 
     <script>
-        const aircraftPositions = {
-            'B777': {
-                main: ['L1', 'R1', 'L2', 'R2', 'L3', 'R3', 'L4', 'R4', 'L5', 'R5'],
-                assist: ['L1A', 'R1A', 'L2A', 'R2A', 'L5A']
-            },
-            'A380': {
-                main_deck: ['ML1', 'MR1', 'ML2', 'MR2', 'ML3', 'MR3', 'ML4', 'MR4', 'ML5', 'MR5'],
-                upper_deck: ['UL1', 'UR1', 'UL2', 'UR2', 'UL3', 'UR3'],
-                assist: ['MR2A', 'MR3A', 'MR4A', 'ML4A', 'ML3A', 'UL1A', 'UR1A']
-            }
-        };
-
-        function handlePositionSelect(event) {
-            const selectedValue = event.target.value;
-            updateAvailableCrew(selectedValue);
-        }
-
-        function updateAvailableCrew() {
-            const selects = document.querySelectorAll('.crew-select');
-            const assignedCrewIds = Array.from(selects)
-                .map(select => select.value)
-                .filter(value => value !== "");
-
-            selects.forEach(select => {
-                const currentValue = select.value;
-                const originalOptions = window.allCrewMembers || [];
-                
-                select.innerHTML = '<option value="">Select Crew</option>';
-                
-                originalOptions.forEach(crew => {
-                    if (!assignedCrewIds.includes(crew.id) || crew.id === currentValue) {
-                        select.innerHTML += `<option value="${crew.id}" ${crew.id === currentValue ? 'selected' : ''}>
-                            ${crew.grade} ${crew.name} (${crew.id})
-                        </option>`;
-                    }
-                });
+        let crewMembers = [];
+        let unassignedCrew = [];
+        let positions = {};
+        
+        function resetForm() {
+            document.querySelectorAll('input:not([type="button"])').forEach(input => {
+                if (input.id === 'flightNumber') {
+                    input.value = 'EK';
+                } else {
+                    input.value = '';
+                }
             });
+            document.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            document.querySelectorAll('textarea').forEach(textarea => {
+                textarea.value = '';
+            });
+            document.getElementById('leadersSection').innerHTML = '';
+            document.getElementById('positionAllocation').innerHTML = '';
+            document.getElementById('emailOutput').innerHTML = '';
+            crewMembers = [];
+            unassignedCrew = [];
+            positions = {};
         }
 
-        function updatePositionSlots() {
-            const aircraftType = document.getElementById('aircraftType').value;
-            const container = document.getElementById('positionAllocation');
-            container.innerHTML = '';
-
-            if (!aircraftType) return;
-
-            // Add Leaders section first
-            container.innerHTML += '<div class="position-section-title">Leaders</div>';
-            container.innerHTML += `
-                <div class="position-group">
-                    <label>PUR:</label>
-                    <select id="posPUR" class="crew-select" onchange="handlePositionSelect(event)">
-                        <option value="">Select PUR</option>
-                    </select>
-                </div>`;
-            container.innerHTML += `
-                <div class="position-group">
-                    <label>CSV:</label>
-                    <select id="posCSV1" class="crew-select" onchange="handlePositionSelect(event)">
-                        <option value="">Select CSV</option>
-                    </select>
-                </div>`;
-            container.innerHTML += `
-                <div class="position-group">
-                    <label>CSV:</label>
-                    <select id="posCSV2" class="crew-select" onchange="handlePositionSelect(event)">
-                        <option value="">Select CSV</option>
-                    </select>
-                </div>`;
-
-            if (aircraftType === 'B777') {
-                container.innerHTML += '<div class="position-section-title">Main Positions</div>';
-                aircraftPositions.B777.main.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-
-                container.innerHTML += '<div class="position-section-title">A Positions & Others</div>';
-                aircraftPositions.B777.assist.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-            } else if (aircraftType === 'A380') {
-                container.innerHTML += '<div class="position-section-title">Main Deck</div>';
-                aircraftPositions.A380.main_deck.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-
-                container.innerHTML += '<div class="position-section-title">Upper Deck</div>';
-                aircraftPositions.A380.upper_deck.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-
-                container.innerHTML += '<div class="position-section-title">A Positions & Others</div>';
-                aircraftPositions.A380.assist.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
+        function capitalizeFirstLetter(input) {
+            if (input.value.length > 0) {
+                input.value = input.value.charAt(0).toUpperCase() + input.value.slice(1);
             }
         }
 
-        function createPositionSelect(position) {
-            return `
-                <div class="position-group">
-                    <label>${position}:</label>
-                    <select id="pos${position}" class="crew-select" onchange="handlePositionSelect(event)">
-                        <option value="">Select Crew</option>
-                    </select>
-                </div>
-            `;
-        }
-
-        function parseCrew() {
-            const crewData = document.getElementById('crewList').value;
-            const crewMembers = [];
+        function parseCrewData() {
+            const crewList = document.getElementById('crewList').value;
+            const lines = crewList.trim().split('\n');
+            crewMembers = [];
+            unassignedCrew = [];
             
-            const lines = crewData.split('\n');
-            for (let i = 0; i < lines.length - 2; i++) {
-                const gradeLine = lines[i].trim();
-                const nameLine = lines[i + 1].trim();
-                const staffNumLine = lines[i + 2].trim();
-                
-                if (
-                    (gradeLine === 'PUR' || gradeLine === 'FG1' || gradeLine === 'GR1' || 
-                     gradeLine === 'GR2' || gradeLine === 'CSV') &&
-                    nameLine.length > 0 &&
-                    staffNumLine.startsWith('S')
-                ) {
-                    crewMembers.push({
-                        grade: gradeLine,
-                        name: nameLine,
-                        id: staffNumLine
-                    });
-                    i += 2;
+            let purCount = 0;
+            let csvCount = 0;
+            const maxCSV = document.getElementById('aircraftType').value === 'A380' ? 3 : 2;
+
+            for (let i = 0; i < lines.length; i += 3) {
+                if (i + 2 < lines.length) {
+                    const grade = lines[i].trim();
+                    const name = lines[i + 1].trim();
+                    const staffNumber = lines[i + 2].trim();
+
+                    const crewMember = {
+                        grade: grade,
+                        name: name,
+                        staffNumber: staffNumber
+                    };
+
+                    crewMembers.push(crewMember);
+                    unassignedCrew.push(crewMember);
+
+                    if (grade === 'PUR' && purCount < 1) {
+                        purCount++;
+                    }
+                    if (grade === 'CSV' && csvCount < maxCSV) {
+                        csvCount++;
+                    }
                 }
             }
 
-            window.allCrewMembers = crewMembers;
+            displayLeaders();
+            createPositionAllocation();
+        }
 
-            const selects = document.querySelectorAll('.crew-select');
-            selects.forEach(select => {
-                select.innerHTML = '<option value="">Select Crew</option>';
-                crewMembers.forEach(crew => {
-                    select.innerHTML += `<option value="${crew.id}">${crew.grade} ${crew.name} (${crew.id})</option>`;
-                });
+        function displayLeaders() {
+            const leadersSection = document.getElementById('leadersSection');
+            let leadersHtml = '<h3>Flight Leaders</h3>';
+            
+            // Display PUR
+            const purLeader = crewMembers.find(cm => cm.grade === 'PUR');
+            if (purLeader) {
+                leadersHtml += `<p>PUR: ${purLeader.name}</p>`;
+            }
+
+            // Display CSVs
+            const csvLeaders = crewMembers.filter(cm => cm.grade === 'CSV');
+            csvLeaders.forEach((csv, index) => {
+                leadersHtml += `<p>CSV${index + 1}: ${csv.name}</p>`;
             });
 
-            const parsedCrewDiv = document.getElementById('parsedCrew');
-            parsedCrewDiv.style.display = 'block';
-            parsedCrewDiv.innerHTML = '<h4>Parsed Crew Members:</h4>' + 
-                crewMembers.map(crew => `${crew.grade} ${crew.name} (${crew.id})`).join('<br>');
-
-            window.csvMembers = crewMembers.filter(crew => crew.grade === 'CSV');
+            leadersSection.innerHTML = leadersHtml;
         }
 
-        function getUnassignedCrew() {
-            const assignedCrewIds = Array.from(document.querySelectorAll('.crew-select'))
-                .map(select => select.value)
-                .filter(value => value !== "");
+        function createPositionAllocation() {
+            const container = document.getElementById('positionAllocation');
+            const aircraftType = document.getElementById('aircraftType').value;
+            
+            let positions;
+            if (aircraftType === 'A380') {
+                positions = ['Door 1L', 'Door 1R', 'Door 2L', 'Door 2R', 'Door 3L', 'Door 3R', 'Door 4L', 'Door 4R', 'Door 5L', 'Door 5R'];
+            } else if (aircraftType === 'B777') {
+                positions = ['Door 1L', 'Door 1R', 'Door 2L', 'Door 2R', 'Door 3L', 'Door 3R', 'Door 4L', 'Door 4R'];
+            }
 
-            return window.allCrewMembers.filter(crew => !assignedCrewIds.includes(crew.id));
+            let html = '';
+            positions.forEach(position => {
+                html += `
+                    <div>
+                        <label>${position}:</label>
+                        <select id="${position.replace(' ', '_')}" onchange="updatePositions()">
+                            <option value="">Select Crew Member</option>
+                            ${crewMembers.map(crew => `
+                                <option value="${crew.name}">${crew.name} (${crew.grade})</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
-        function getCSVNamesFormatted() {
-            if (!window.csvMembers || window.csvMembers.length === 0) return '';
-            
-            const firstNames = window.csvMembers.map(csv => csv.name.split(' ')[0]);
-            
-            if (firstNames.length === 1) return firstNames[0];
-            if (firstNames.length === 2) return `${firstNames[0]} and ${firstNames[1]}`;
-            return `${firstNames.slice(0, -1).join(', ')} and ${firstNames[firstNames.length - 1]}`;
+        function updatePositions() {
+            positions = {};
+            const selects = document.querySelectorAll('#positionAllocation select');
+            selects.forEach(select => {
+                if (select.value) {
+                    positions[select.id.replace('_', ' ')] = select.value;
+                }
+            });
         }
 
         function generateEmail() {
-            const aircraftType = document.getElementById('aircraftType').value;
             const flightNumber = document.getElementById('flightNumber').value;
-            const route = document.getElementById('route').value.toUpperCase();
+            const aircraftType = document.getElementById('aircraftType').value;
+            const route = document.getElementById('route').value;
             const flightDate = document.getElementById('flightDate').value;
-            const yourName = document.getElementById('yourName').value;
-            const sectorDesignator = document.getElementById('sectorDesignator').value.toUpperCase();
-            const ifrTarget = document.getElementById('ifrTarget').value.toUpperCase();
-            
-            let emailContent = `Flight Details:
-Aircraft: ${aircraftType}
-Flight: ${flightNumber}
-Route: ${route}
-Date: ${flightDate}
+            const sectorDesignator = document.getElementById('sectorDesignator').value;
+            const ifrTarget = document.getElementById('ifrTarget').value;
+            const upgradePrices = document.getElementById('upgradePrices').value;
+            const legroom = document.getElementById('legroom').value;
+            const bulkhead = document.getElementById('bulkhead').value;
+            const yj = document.getElementById('yj').value;
+            const jf = document.getElementById('jf').value;
 
-Hello ladies and gents,
+            let email = `Flight: ${flightNumber}\n`;
+            email += `Aircraft: ${aircraftType}\n`;
+            email += `Route: ${route}\n`;
+            email += `Date: ${flightDate}\n\n`;
 
-My name is ${yourName}, I am from Romania and it is my pleasure to be your purser on this flight.`;
-
-            const csvNames = getCSVNamesFormatted();
-            if (csvNames) {
-                emailContent += `\nTogether with senior${window.csvMembers.length > 1 ? 's' : ''} ${csvNames}, we will support you, guide you and work alongside you at all times.`;
+            // Add Leaders Section
+            email += "Flight Leaders:\n";
+            const purLeader = crewMembers.find(cm => cm.grade === 'PUR');
+            if (purLeader) {
+                email += `PUR: ${purLeader.name}\n`;
             }
-
-            emailContent += `\nI want you to feel comfortable approaching us in any regards, be it professional or personal.
-The flight deck crew are part of the team and it is important for you to know and use their names. It's a GCAA requirement, as well as a sign of respect for our colleagues.
-
-My goal is to empower you to use your skills, knowledge and individual personalities to create a successful flight, keeping in mind the following expectations:
-- We are brand ambassadors, wear the uniform with pride, be professional at all times as everyone is watching us.
-- Please refresh your knowledge on SSQs for your respective cabins, ACIs, Flight Instructions and Flight Brief.
-- There is specific information regarding our trip, please check destination information page in your crew pulse app and familiarise yourself with the requirements for this flight.
-- Be thorough, ensure all safety and security standards are followed.
-- Take ownership for your respective role and be a team player.
-- Be considerate and kind with our customers and each other.
-
-We are always improving the way we do things so keeping up-to-date is vital.
-
-Inflight retail:
-
-Ensure the inflight retail commencement is announced in Economy class and present in the cabin. Please ensure pre-order container is checked and follow up with me.`;
-
-            if (ifrTarget) {
-                emailContent += `\nIFR target for ${ifrTarget}`;
-            }
-
-            const legroom = document.getElementById('legroom').value.toUpperCase();
-            const bulkhead = document.getElementById('bulkhead').value.toUpperCase();
-            const yj = document.getElementById('yj').value.toUpperCase();
-            const jf = document.getElementById('jf').value.toUpperCase();
-
-            if (legroom || bulkhead || yj || jf) {
-                emailContent += '\n\nUpgrade prices:';
-                if (legroom) emailContent += `\nlegroom: ${legroom}`;
-                if (bulkhead) emailContent += `\nbulkhead: ${bulkhead}`;
-                if (yj) emailContent += `\nY/J: ${yj}`;
-                if (jf) emailContent += `\nJ/F: ${jf}`;
-            }
-
-            emailContent += `\n\nI trust each one of you to bring your cheerful personality and kindness on our flight, to create special moments for our customers and deliver Emirates Excellence.
-
-Positions have been assigned according to your experience and preferences. Positions are assigned for ${sectorDesignator}.\n`;
-
-            // Add Leaders section
-            emailContent += '\nLeaders:';
-            ['PUR', 'CSV1', 'CSV2'].forEach(pos => {
-                const crewSelect = document.getElementById(`pos${pos}`);
-                if (crewSelect && crewSelect.value) {
-                    const selectedOption = crewSelect.options[crewSelect.selectedIndex];
-                    emailContent += `\n${pos === 'CSV1' || pos === 'CSV2' ? 'CSV' : pos}: ${selectedOption.text}`;
-                }
+            const csvLeaders = crewMembers.filter(cm => cm.grade === 'CSV');
+            csvLeaders.forEach((csv, index) => {
+                email += `CSV${index + 1}: ${csv.name}\n`;
             });
+            email += '\n';
 
-            if (aircraftType === 'B777') {
-                emailContent += '\n\nMain Positions:';
-                aircraftPositions.B777.main.forEach(pos => {
-                    const crewSelect = document.getElementById(`pos${pos}`);
-                    if (crewSelect && crewSelect.value) {
-                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
-                        emailContent += `\n${pos}: ${selectedOption.text}`;
-                    }
-                });
-
-                emailContent += '\n\nA Positions & Others:';
-                aircraftPositions.B777.assist.forEach(pos => {
-                    const crewSelect = document.getElementById(`pos${pos}`);
-                    if (crewSelect && crewSelect.value) {
-                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
-                        emailContent += `\n${pos}: ${selectedOption.text}`;
-                    }
-                });
-            } else if (aircraftType === 'A380') {
-                emailContent += '\n\nMain Deck:';
-                aircraftPositions.A380.main_deck.forEach(pos => {
-                    const crewSelect = document.getElementById(`pos${pos}`);
-                    if (crewSelect && crewSelect.value) {
-                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
-                        emailContent += `\n${pos}: ${selectedOption.text}`;
-                    }
-                });
-
-                emailContent += '\n\nUpper Deck:';
-                aircraftPositions.A380.upper_deck.forEach(pos => {
-                    const crewSelect = document.getElementById(`pos${pos}`);
-                    if (crewSelect && crewSelect.value) {
-                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
-                        emailContent += `\n${pos}: ${selectedOption.text}`;
-                    }
-                });
-
-                emailContent += '\n\nA Positions & Others:';
-                aircraftPositions.A380.assist.forEach(pos => {
-                    const crewSelect = document.getElementById(`pos${pos}`);
-                    if (crewSelect && crewSelect.value) {
-                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
-                        emailContent += `\n${pos}: ${selectedOption.text}`;
-                    }
-                });
+            // Position Assignments
+            email += "Position Assignments:\n";
+            for (const [position, name] of Object.entries(positions)) {
+                email += `${position}: ${name}\n`;
             }
+            email += '\n';
 
-            // Add unassigned crew
-            const unassignedCrew = getUnassignedCrew();
-            if (unassignedCrew.length > 0) {
-                emailContent += '\n\nUnassigned Crew:';
-                unassignedCrew.forEach(crew => {
-                    emailContent += `\n${crew.grade} - ${crew.name}`;
-                });
-            }
+            // Additional Information
+            if (sectorDesignator) email += `Sector Designator: ${sectorDesignator}\n`;
+            if (ifrTarget) email += `IFR Target: ${ifrTarget}\n`;
+            if (upgradePrices) email += `Upgrade Prices: ${upgradePrices}\n`;
+            if (legroom) email += `Legroom: ${legroom}\n`;
+            if (bulkhead) email += `Bulkhead: ${bulkhead}\n`;
+            if (yj) email += `Y/J: ${yj}\n`;
+            if (jf) email += `J/F: ${jf}\n`;
 
-            emailContent += `\n\nSee you all soon,\n${yourName}`;
-
-            const previewDiv = document.getElementById('emailPreview');
-            previewDiv.style.display = 'block';
-            previewDiv.textContent = emailContent;
-
-            // Show the copy button
-            document.getElementById('copyButton').style.display = 'inline-block';
+            document.getElementById('emailOutput').innerHTML = email.replace(/\n/g, '<br>');
         }
 
         function copyEmail() {
-            const emailText = document.getElementById('emailPreview').textContent;
-            navigator.clipboard.writeText(emailText).then(() => {
-                const copyButton = document.getElementById('copyButton');
-                const originalText = copyButton.textContent;
-                copyButton.textContent = 'Copied!';
-                setTimeout(() => {
-                    copyButton.textContent = originalText;
-                }, 2000);
-            });
+            const emailOutput = document.getElementById('emailOutput');
+            const emailText = emailOutput.innerHTML.replace(/<br>/g, '\n');
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = emailText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            alert('Email copied to clipboard!');
         }
     </script>
 </body>
