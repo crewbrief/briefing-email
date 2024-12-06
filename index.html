@@ -1,384 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cabin Crew Briefing Tool</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            padding: 20px;
-            background: #f0f2f5;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        h3 {
-            margin-bottom: 15px;
-            color: #2196F3;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        button {
-            background: #2196F3;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background: #1976D2;
-        }
-
-        .position-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .position-section {
-            margin-top: 20px;
-        }
-
-        .position-section-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            grid-column: 1 / -1;
-            background: #f5f5f5;
-            padding: 5px;
-            border-radius: 4px;
-        }
-
-        .parsed-crew-container {
-            margin-top: 15px;
-            padding: 10px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .email-preview {
-            white-space: pre-wrap;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .position-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .position-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Cabin Crew Briefing Tool</h1>
+function parseCrew() {
+    const crewData = document.getElementById('crewList').value;
+    const crewMembers = [];
+    
+    const lines = crewData.split('\n');
+    for (let i = 0; i < lines.length - 2; i++) {
+        const gradeLine = lines[i].trim();
+        const nameLine = lines[i + 1].trim();
+        const staffNumLine = lines[i + 2].trim();
         
-        <div class="section">
-            <h3>Flight Details</h3>
-            <div class="input-group">
-                <label>Flight Number:</label>
-                <input type="text" id="flightNumber" placeholder="e.g. EK123/124">
-            </div>
-            <div class="input-group">
-                <label>Aircraft Type:</label>
-                <select id="aircraftType" onchange="updatePositionSlots()">
-                    <option value="">Select Aircraft Type</option>
-                    <option value="B777">Boeing 777</option>
-                    <option value="A380">Airbus 380</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Route:</label>
-                <input type="text" id="route" placeholder="e.g. DXB-LHR-DXB">
-            </div>
-            <div class="input-group">
-                <label>Flight Date:</label>
-                <input type="date" id="flightDate">
-            </div>
-            <div class="input-group">
-                <label>Your Name:</label>
-                <input type="text" id="yourName" placeholder="Enter your name">
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>Crew Data</h3>
-            <div class="input-group">
-                <label>Paste Crew List Here:</label>
-                <textarea id="crewList" placeholder="Paste crew data here..."></textarea>
-            </div>
-            <button onclick="parseCrew()" class="parse-button">Parse Crew Data</button>
-            <div id="parsedCrew" class="parsed-crew-container"></div>
-        </div>
-
-        <div class="section">
-            <h3>Position Allocation</h3>
-            <div id="positionAllocation" class="position-grid">
-                <!-- Will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>IFR Check</h3>
-            <button onclick="toggleIfrCheckboxes()">Add IFR Check Items</button>
-            <div id="ifrCheckboxes" style="display: none; margin-top: 15px;">
-                <!-- Will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>Generate Email</h3>
-            <button onclick="generateEmail()">Generate Briefing Email</button>
-            <div id="emailPreview" class="email-preview"></div>
-        </div>
-    </div>
-
-    <script>
-        const aircraftPositions = {
-            'B777': {
-                main: ['L1', 'R1', 'L2', 'R2', 'L3', 'R3', 'L4', 'R4', 'L5', 'R5'],
-                assist: ['L1A', 'R1A', 'L2A', 'R2A', 'L5A']
-            },
-            'A380': {
-                main_deck: ['ML1', 'MR1', 'ML2', 'MR2', 'ML3', 'MR3', 'ML4', 'MR4', 'ML5', 'MR5'],
-                upper_deck: ['UL1', 'UR1', 'UL2', 'UR2', 'UL3', 'UR3'],
-                assist: ['MR2A', 'MR3A', 'MR4A', 'ML4A', 'ML3A', 'UL1A', 'UR1A']
-            }
-        };
-
-        const ifrItems = [
-            "Equipment Check",
-            "Door Operation",
-            "Emergency Equipment Location",
-            "Evacuation Procedures",
-            "First Aid Kit Location",
-            "Oxygen System Operation",
-            "Communication System Check"
-        ];
-
-        function updatePositionSlots() {
-            const aircraftType = document.getElementById('aircraftType').value;
-            const container = document.getElementById('positionAllocation');
-            container.innerHTML = '';
-
-            if (!aircraftType) return;
-
-            if (aircraftType === 'B777') {
-                container.innerHTML += '<div class="position-section-title">Main Positions</div>';
-                aircraftPositions.B777.main.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-
-                container.innerHTML += '<div class="position-section-title">Assist Positions</div>';
-                aircraftPositions.B777.assist.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-            } else if (aircraftType === 'A380') {
-                container.innerHTML += '<div class="position-section-title">Main Deck</div>';
-                aircraftPositions.A380.main_deck.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-
-                container.innerHTML += '<div class="position-section-title">Upper Deck</div>';
-                aircraftPositions.A380.upper_deck.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-
-                container.innerHTML += '<div class="position-section-title">Assist Positions</div>';
-                aircraftPositions.A380.assist.forEach(pos => {
-                    container.innerHTML += createPositionSelect(pos);
-                });
-            }
-        }
-
-        function createPositionSelect(position) {
-            return `
-                <div class="position-group">
-                    <label>${position}:</label>
-                    <select id="pos${position}" class="crew-select">
-                        <option value="">Select Crew</option>
-                    </select>
-                </div>
-            `;
-        }
-
-        function parseCrew() {
-            const crewData = document.getElementById('crewList').value;
-            const crewMembers = [];
-            
-            const lines = crewData.split('\n');
-            lines.forEach(line => {
-                if (line.trim()) {
-                    const match = line.match(/([A-Z]+)\s+([A-Za-z\s]+)/);
-                    if (match) {
-                        crewMembers.push({
-                            id: match[1],
-                            name: match[2].trim()
-                        });
-                    }
-                }
+        // Check for the pattern: Grade (PUR/FG1/GR1/GR2/CSA) -> Name -> Staff Number (S******)
+        if (
+            (gradeLine === 'PUR' || gradeLine === 'FG1' || gradeLine === 'GR1' || 
+             gradeLine === 'GR2' || gradeLine === 'CSA') &&
+            nameLine.length > 0 &&
+            staffNumLine.startsWith('S')
+        ) {
+            crewMembers.push({
+                grade: gradeLine,
+                name: nameLine,
+                id: staffNumLine
             });
-
-            const selects = document.querySelectorAll('.crew-select');
-            selects.forEach(select => {
-                select.innerHTML = '<option value="">Select Crew</option>';
-                crewMembers.forEach(crew => {
-                    select.innerHTML += `<option value="${crew.id}">${crew.name} (${crew.id})</option>`;
-                });
-            });
-
-            const parsedCrewDiv = document.getElementById('parsedCrew');
-            parsedCrewDiv.style.display = 'block';
-            parsedCrewDiv.innerHTML = '<h4>Parsed Crew Members:</h4>' + 
-                crewMembers.map(crew => `${crew.name} (${crew.id})`).join('<br>');
+            i += 2; // Skip the next two lines since we've processed them
         }
+    }
 
-        function toggleIfrCheckboxes() {
-            const container = document.getElementById('ifrCheckboxes');
-            if (container.style.display === 'none') {
-                container.style.display = 'block';
-                container.innerHTML = ifrItems.map((item, index) => `
-                    <div style="margin-bottom: 10px;">
-                        <input type="checkbox" id="ifr${index}" name="ifr${index}">
-                        <label for="ifr${index}">${item}</label>
-                    </div>
-                `).join('');
-            } else {
-                container.style.display = 'none';
+    const selects = document.querySelectorAll('.crew-select');
+    selects.forEach(select => {
+        select.innerHTML = '<option value="">Select Crew</option>';
+        crewMembers.forEach(crew => {
+            // Don't add CSA to position selection dropdowns
+            if (crew.grade !== 'CSA') {
+                select.innerHTML += `<option value="${crew.id}">${crew.grade} ${crew.name} (${crew.id})</option>`;
             }
-        }
+        });
+    });
 
-        function generateEmail() {
-            const aircraftType = document.getElementById('aircraftType').value;
-            const flightNumber = document.getElementById('flightNumber').value;
-            const route = document.getElementById('route').value;
-            const flightDate = document.getElementById('flightDate').value;
-            const yourName = document.getElementById('yourName').value || '[Your Name]';
+    const parsedCrewDiv = document.getElementById('parsedCrew');
+    parsedCrewDiv.style.display = 'block';
+    parsedCrewDiv.innerHTML = '<h4>Parsed Crew Members:</h4>' + 
+        crewMembers.map(crew => `${crew.grade} ${crew.name} (${crew.id})`).join('<br>');
 
-            let emailContent = `Hello ladies and gents,
-
-Flight Details:
-Aircraft: ${aircraftType}
-Flight: ${flightNumber}
-Route: ${route}
-Date: ${flightDate}
-
-My name is ${yourName} and I will be leading the briefing for this flight.
-
-Position Allocations:`;
-
-            if (aircraftType === 'B777') {
-                [...aircraftPositions.B777.main, ...aircraftPositions.B777.assist].forEach(pos => {
-                    const crew = document.getElementById(`pos${pos}`)?.value;
-                    if (crew) {
-                        emailContent += `\n${pos}: ${crew}`;
-                    }
-                });
-            } else if (aircraftType === 'A380') {
-                emailContent += '\n\nMain Deck:';
-                aircraftPositions.A380.main_deck.forEach(pos => {
-                    const crew = document.getElementById(`pos${pos}`)?.value;
-                    if (crew) {
-                        emailContent += `\n${pos}: ${crew}`;
-                    }
-                });
-
-                emailContent += '\n\nUpper Deck:';
-                aircraftPositions.A380.upper_deck.forEach(pos => {
-                    const crew = document.getElementById(`pos${pos}`)?.value;
-                    if (crew) {
-                        emailContent += `\n${pos}: ${crew}`;
-                    }
-                });
-
-                emailContent += '\n\nAssist Positions:';
-                aircraftPositions.A380.assist.forEach(pos => {
-                    const crew = document.getElementById(`pos${pos}`)?.value;
-                    if (crew) {
-                        emailContent += `\n${pos}: ${crew}`;
-                    }
-                });
-            }
-
-            emailContent += '\n\nIFR Items Completed:';
-            ifrItems.forEach((item, index) => {
-                const checkbox = document.getElementById(`ifr${index}`);
-                if (checkbox && checkbox.checked) {
-                    emailContent += `\n✓ ${item}`;
-                }
-            });
-
-            emailContent += `\n\nHave a great flight!\n${yourName}`;
-
-            const previewDiv = document.getElementById('emailPreview');
-            previewDiv.style.display = 'block';
-            previewDiv.textContent = emailContent;
-        }
-    </script>
-</body>
-</html>
+    // Store CSA info for email generation
+    window.csaMember = crewMembers.find(crew => crew.grade === 'CSA');
+}
