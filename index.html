@@ -77,6 +77,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            margin-right: 10px;
         }
 
         button:hover {
@@ -127,9 +128,39 @@
             display: none;
         }
 
+        .upgrade-prices-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .sector-input {
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        #copyButton {
+            display: none;
+            background: #4CAF50;
+        }
+
+        #copyButton:hover {
+            background: #45a049;
+        }
+
         @media (max-width: 768px) {
             .position-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .upgrade-prices-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -178,28 +209,56 @@
                 <label>Paste Crew List Here:</label>
                 <textarea id="crewList" placeholder="Paste crew data here..."></textarea>
             </div>
-            <button onclick="parseCrew()" class="parse-button">Parse Crew Data <span class="version-tag">v1.1</span></button>
+            <button onclick="parseCrew()" class="parse-button">Parse Crew Data <span class="version-tag">v1.2</span></button>
             <div id="parsedCrew" class="parsed-crew-container"></div>
         </div>
 
         <div class="section">
             <h3>Position Allocation</h3>
+            <div class="sector-input">
+                <label>Sector Designator:</label>
+                <input type="text" id="sectorDesignator" placeholder="e.g. DXB-LHR">
+            </div>
             <div id="positionAllocation" class="position-grid">
                 <!-- Will be populated by JavaScript -->
             </div>
         </div>
 
         <div class="section">
-            <h3>IFR Check</h3>
-            <button onclick="toggleIfrCheckboxes()">Add IFR Check Items</button>
-            <div id="ifrCheckboxes" style="display: none; margin-top: 15px;">
-                <!-- Will be populated by JavaScript -->
+            <h3>Additional Information</h3>
+            <div class="input-group">
+                <label>IFR Target:</label>
+                <input type="text" id="ifrTarget" placeholder="Enter IFR target">
+            </div>
+            <div class="input-group">
+                <label>Upgrade Prices:</label>
+                <div class="upgrade-prices-grid">
+                    <div class="input-group">
+                        <label>Legroom:</label>
+                        <input type="text" id="legroom" placeholder="Enter legroom price">
+                    </div>
+                    <div class="input-group">
+                        <label>Bulkhead:</label>
+                        <input type="text" id="bulkhead" placeholder="Enter bulkhead price">
+                    </div>
+                    <div class="input-group">
+                        <label>Y/J:</label>
+                        <input type="text" id="yj" placeholder="Enter Y/J price">
+                    </div>
+                    <div class="input-group">
+                        <label>J/F:</label>
+                        <input type="text" id="jf" placeholder="Enter J/F price">
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="section">
             <h3>Generate Email</h3>
-            <button onclick="generateEmail()">Generate Briefing Email</button>
+            <div class="button-group">
+                <button onclick="generateEmail()">Generate Briefing Email</button>
+                <button id="copyButton" onclick="copyEmail()" style="display: none;">Copy Email</button>
+            </div>
             <div id="emailPreview" class="email-preview"></div>
         </div>
     </div>
@@ -216,16 +275,6 @@
                 assist: ['MR2A', 'MR3A', 'MR4A', 'ML4A', 'ML3A', 'UL1A', 'UR1A']
             }
         };
-
-        const ifrItems = [
-            "Equipment Check",
-            "Door Operation",
-            "Emergency Equipment Location",
-            "Evacuation Procedures",
-            "First Aid Kit Location",
-            "Oxygen System Operation",
-            "Communication System Check"
-        ];
 
         function handlePositionSelect(event) {
             const selectedValue = event.target.value;
@@ -245,7 +294,7 @@
                 select.innerHTML = '<option value="">Select Crew</option>';
                 
                 originalOptions.forEach(crew => {
-                    if (crew.grade !== 'CSA' && (!assignedCrewIds.includes(crew.id) || crew.id === currentValue)) {
+                    if (!assignedCrewIds.includes(crew.id) || crew.id === currentValue) {
                         select.innerHTML += `<option value="${crew.id}" ${crew.id === currentValue ? 'selected' : ''}>
                             ${crew.grade} ${crew.name} (${crew.id})
                         </option>`;
@@ -312,7 +361,7 @@
                 
                 if (
                     (gradeLine === 'PUR' || gradeLine === 'FG1' || gradeLine === 'GR1' || 
-                     gradeLine === 'GR2' || gradeLine === 'CSA') &&
+                     gradeLine === 'GR2' || gradeLine === 'CSV') &&
                     nameLine.length > 0 &&
                     staffNumLine.startsWith('S')
                 ) {
@@ -331,9 +380,7 @@
             selects.forEach(select => {
                 select.innerHTML = '<option value="">Select Crew</option>';
                 crewMembers.forEach(crew => {
-                    if (crew.grade !== 'CSA') {
-                        select.innerHTML += `<option value="${crew.id}">${crew.grade} ${crew.name} (${crew.id})</option>`;
-                    }
+                    select.innerHTML += `<option value="${crew.id}">${crew.grade} ${crew.name} (${crew.id})</option>`;
                 });
             });
 
@@ -342,22 +389,17 @@
             parsedCrewDiv.innerHTML = '<h4>Parsed Crew Members:</h4>' + 
                 crewMembers.map(crew => `${crew.grade} ${crew.name} (${crew.id})`).join('<br>');
 
-            window.csaMember = crewMembers.find(crew => crew.grade === 'CSA');
+            window.csvMembers = crewMembers.filter(crew => crew.grade === 'CSV');
         }
 
-        function toggleIfrCheckboxes() {
-            const container = document.getElementById('ifrCheckboxes');
-            if (container.style.display === 'none') {
-                container.style.display = 'block';
-                container.innerHTML = ifrItems.map((item, index) => `
-                    <div style="margin-bottom: 10px;">
-                        <input type="checkbox" id="ifr${index}" name="ifr${index}">
-                        <label for="ifr${index}">${item}</label>
-                    </div>
-                `).join('');
-            } else {
-                container.style.display = 'none';
-            }
+        function getCSVNamesFormatted() {
+            if (!window.csvMembers || window.csvMembers.length === 0) return '';
+            
+            const firstNames = window.csvMembers.map(csv => csv.name.split(' ')[0]);
+            
+            if (firstNames.length === 1) return firstNames[0];
+            if (firstNames.length === 2) return `${firstNames[0]} and ${firstNames[1]}`;
+            return `${firstNames.slice(0, -1).join(', ')} and ${firstNames[firstNames.length - 1]}`;
         }
 
         function generateEmail() {
@@ -365,70 +407,120 @@
             const flightNumber = document.getElementById('flightNumber').value;
             const route = document.getElementById('route').value;
             const flightDate = document.getElementById('flightDate').value;
-            const yourName = document.getElementById('yourName').value || '[Your Name]';
-
-            let emailContent = `Hello ladies and gents,
-
-Flight Details:
+            const yourName = document.getElementById('yourName').value;
+            const sectorDesignator = document.getElementById('sectorDesignator').value;
+            const ifrTarget = document.getElementById('ifrTarget').value;
+            
+            let emailContent = `Flight Details:
 Aircraft: ${aircraftType}
 Flight: ${flightNumber}
 Route: ${route}
 Date: ${flightDate}
 
-My name is ${yourName} and I will be leading the briefing for this flight.
+Hello ladies and gents,
 
-Position Allocations:`;
+My name is ${yourName}, I am from Romania and it is my pleasure to be your purser on this flight.`;
+
+            const csvNames = getCSVNamesFormatted();
+            if (csvNames) {
+                emailContent += `\nTogether with senior${window.csvMembers.length > 1 ? 's' : ''} ${csvNames}, we will support you, guide you and work alongside you at all times.`;
+            }
+
+            emailContent += `\nI want you to feel comfortable approaching us in any regards, be it professional or personal.
+The flight deck crew are part of the team and it is important for you to know and use their names. It's a GCAA requirement, as well as a sign of respect for our colleagues.
+
+My goal is to empower you to use your skills, knowledge and individual personalities to create a successful flight, keeping in mind the following expectations:
+- We are brand ambassadors, wear the uniform with pride, be professional at all times as everyone is watching us.
+- Please refresh your knowledge on SSQs for your respective cabins, ACIs, Flight Instructions and Flight Brief.
+- There is specific information regarding our trip, please check destination information page in your crew pulse app and familiarise yourself with the requirements for this flight.
+- Be thorough, ensure all safety and security standards are followed.
+- Take ownership for your respective role and be a team player.
+- Be considerate and kind with our customers and each other.
+
+We are always improving the way we do things so keeping up-to-date is vital.
+
+Inflight retail:
+
+Ensure the inflight retail commencement is announced in Economy class and present in the cabin. Please ensure pre-order container is checked and follow up with me.`;
+
+            if (ifrTarget) {
+                emailContent += `\nIFR target for ${ifrTarget}`;
+            }
+
+            const legroom = document.getElementById('legroom').value;
+            const bulkhead = document.getElementById('bulkhead').value;
+            const yj = document.getElementById('yj').value;
+            const jf = document.getElementById('jf').value;
+
+            if (legroom || bulkhead || yj || jf) {
+                emailContent += '\n\nUpgrade prices:';
+                if (legroom) emailContent += `\nlegroom: ${legroom}`;
+                if (bulkhead) emailContent += `\nbulkhead: ${bulkhead}`;
+                if (yj) emailContent += `\nY/J: ${yj}`;
+                if (jf) emailContent += `\nJ/F: ${jf}`;
+            }
+
+            emailContent += `\n\nI trust each one of you to bring your cheerful personality and kindness on our flight, to create special moments for our customers and deliver Emirates Excellence.
+
+Positions have been assigned according to your experience and preferences. Positions are assigned for ${sectorDesignator}.\n`;
 
             if (aircraftType === 'B777') {
                 [...aircraftPositions.B777.main, ...aircraftPositions.B777.assist].forEach(pos => {
-                    const crew = document.getElementById(`pos${pos}`)?.value;
-                    if (crew) {
-                        emailContent += `\n${pos}: ${crew}`;
+                    const crewSelect = document.getElementById(`pos${pos}`);
+                    if (crewSelect && crewSelect.value) {
+                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
+                        emailContent += `\n${pos}: ${selectedOption.text}`;
                     }
                 });
             } else if (aircraftType === 'A380') {
-                if (window.csaMember) {
-                    emailContent += `\nCSA: ${window.csaMember.grade} ${window.csaMember.name} (${window.csaMember.id})`;
-                }
-
-                emailContent += '\n\nMain Deck:';
+                emailContent += '\nMain Deck:';
                 aircraftPositions.A380.main_deck.forEach(pos => {
-                    const crew = document.getElementById(`pos${pos}`)?.value;
-                    if (crew) {
-                        emailContent += `\n${pos}: ${crew}`;
+                    const crewSelect = document.getElementById(`pos${pos}`);
+                    if (crewSelect && crewSelect.value) {
+                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
+                        emailContent += `\n${pos}: ${selectedOption.text}`;
                     }
                 });
 
                 emailContent += '\n\nUpper Deck:';
                 aircraftPositions.A380.upper_deck.forEach(pos => {
-                    const crew = document.getElementById(`pos${pos}`)?.value;
-                    if (crew) {
-                        emailContent += `\n${pos}: ${crew}`;
+                    const crewSelect = document.getElementById(`pos${pos}`);
+                    if (crewSelect && crewSelect.value) {
+                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
+                        emailContent += `\n${pos}: ${selectedOption.text}`;
                     }
                 });
 
                 emailContent += '\n\nAssist Positions:';
                 aircraftPositions.A380.assist.forEach(pos => {
-                    const crew = document.getElementById(`pos${pos}`)?.value;
-                    if (crew) {
-                        emailContent += `\n${pos}: ${crew}`;
+                    const crewSelect = document.getElementById(`pos${pos}`);
+                    if (crewSelect && crewSelect.value) {
+                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
+                        emailContent += `\n${pos}: ${selectedOption.text}`;
                     }
                 });
             }
 
-            emailContent += '\n\nIFR Items Completed:';
-            ifrItems.forEach((item, index) => {
-                const checkbox = document.getElementById(`ifr${index}`);
-                if (checkbox && checkbox.checked) {
-                    emailContent += `\n✓ ${item}`;
-                }
-            });
-
-            emailContent += `\n\nHave a great flight!\n${yourName}`;
+            emailContent += `\n\nSee you all soon,\n${yourName}`;
 
             const previewDiv = document.getElementById('emailPreview');
             previewDiv.style.display = 'block';
             previewDiv.textContent = emailContent;
+
+            // Show the copy button
+            document.getElementById('copyButton').style.display = 'inline-block';
+        }
+
+        function copyEmail() {
+            const emailText = document.getElementById('emailPreview').textContent;
+            navigator.clipboard.writeText(emailText).then(() => {
+                const copyButton = document.getElementById('copyButton');
+                const originalText = copyButton.textContent;
+                copyButton.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyButton.textContent = originalText;
+                }, 2000);
+            });
         }
     </script>
 </body>
