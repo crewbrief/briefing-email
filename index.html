@@ -154,6 +154,11 @@
             background: #45a049;
         }
 
+        input::placeholder {
+            color: #999;
+            opacity: 0.7;
+        }
+
         @media (max-width: 768px) {
             .position-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -168,6 +173,10 @@
             .position-grid {
                 grid-template-columns: 1fr;
             }
+        }
+
+        .text-uppercase {
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -191,7 +200,7 @@
             </div>
             <div class="input-group">
                 <label>Route:</label>
-                <input type="text" id="route" placeholder="e.g. DXB-LHR-DXB">
+                <input type="text" id="route" class="text-uppercase" placeholder="e.g. DXB-LHR-DXB">
             </div>
             <div class="input-group">
                 <label>Flight Date:</label>
@@ -209,7 +218,7 @@
                 <label>Paste Crew List Here:</label>
                 <textarea id="crewList" placeholder="Paste crew data here..."></textarea>
             </div>
-            <button onclick="parseCrew()" class="parse-button">Parse Crew Data <span class="version-tag">v1.2</span></button>
+            <button onclick="parseCrew()" class="parse-button">Parse Crew Data <span class="version-tag">v1.3</span></button>
             <div id="parsedCrew" class="parsed-crew-container"></div>
         </div>
 
@@ -217,7 +226,7 @@
             <h3>Position Allocation</h3>
             <div class="sector-input">
                 <label>Sector Designator:</label>
-                <input type="text" id="sectorDesignator" placeholder="e.g. DXB-LHR">
+                <input type="text" id="sectorDesignator" class="text-uppercase" placeholder="e.g. DXB-LHR">
             </div>
             <div id="positionAllocation" class="position-grid">
                 <!-- Will be populated by JavaScript -->
@@ -228,26 +237,26 @@
             <h3>Additional Information</h3>
             <div class="input-group">
                 <label>IFR Target:</label>
-                <input type="text" id="ifrTarget" placeholder="Enter IFR target">
+                <input type="text" id="ifrTarget" class="text-uppercase" placeholder="e.g. DXB-LHR 8600AED">
             </div>
             <div class="input-group">
                 <label>Upgrade Prices:</label>
                 <div class="upgrade-prices-grid">
                     <div class="input-group">
                         <label>Legroom:</label>
-                        <input type="text" id="legroom" placeholder="Enter legroom price">
+                        <input type="text" id="legroom" class="text-uppercase" placeholder="Enter legroom price">
                     </div>
                     <div class="input-group">
                         <label>Bulkhead:</label>
-                        <input type="text" id="bulkhead" placeholder="Enter bulkhead price">
+                        <input type="text" id="bulkhead" class="text-uppercase" placeholder="Enter bulkhead price">
                     </div>
                     <div class="input-group">
                         <label>Y/J:</label>
-                        <input type="text" id="yj" placeholder="Enter Y/J price">
+                        <input type="text" id="yj" class="text-uppercase" placeholder="Enter Y/J price">
                     </div>
                     <div class="input-group">
                         <label>J/F:</label>
-                        <input type="text" id="jf" placeholder="Enter J/F price">
+                        <input type="text" id="jf" class="text-uppercase" placeholder="Enter J/F price">
                     </div>
                 </div>
             </div>
@@ -310,13 +319,37 @@
 
             if (!aircraftType) return;
 
+            // Add Leaders section first
+            container.innerHTML += '<div class="position-section-title">Leaders</div>';
+            container.innerHTML += `
+                <div class="position-group">
+                    <label>PUR:</label>
+                    <select id="posPUR" class="crew-select" onchange="handlePositionSelect(event)">
+                        <option value="">Select PUR</option>
+                    </select>
+                </div>`;
+            container.innerHTML += `
+                <div class="position-group">
+                    <label>CSV:</label>
+                    <select id="posCSV1" class="crew-select" onchange="handlePositionSelect(event)">
+                        <option value="">Select CSV</option>
+                    </select>
+                </div>`;
+            container.innerHTML += `
+                <div class="position-group">
+                    <label>CSV:</label>
+                    <select id="posCSV2" class="crew-select" onchange="handlePositionSelect(event)">
+                        <option value="">Select CSV</option>
+                    </select>
+                </div>`;
+
             if (aircraftType === 'B777') {
                 container.innerHTML += '<div class="position-section-title">Main Positions</div>';
                 aircraftPositions.B777.main.forEach(pos => {
                     container.innerHTML += createPositionSelect(pos);
                 });
 
-                container.innerHTML += '<div class="position-section-title">Assist Positions</div>';
+                container.innerHTML += '<div class="position-section-title">A Positions & Others</div>';
                 aircraftPositions.B777.assist.forEach(pos => {
                     container.innerHTML += createPositionSelect(pos);
                 });
@@ -331,7 +364,7 @@
                     container.innerHTML += createPositionSelect(pos);
                 });
 
-                container.innerHTML += '<div class="position-section-title">Assist Positions</div>';
+                container.innerHTML += '<div class="position-section-title">A Positions & Others</div>';
                 aircraftPositions.A380.assist.forEach(pos => {
                     container.innerHTML += createPositionSelect(pos);
                 });
@@ -392,6 +425,14 @@
             window.csvMembers = crewMembers.filter(crew => crew.grade === 'CSV');
         }
 
+        function getUnassignedCrew() {
+            const assignedCrewIds = Array.from(document.querySelectorAll('.crew-select'))
+                .map(select => select.value)
+                .filter(value => value !== "");
+
+            return window.allCrewMembers.filter(crew => !assignedCrewIds.includes(crew.id));
+        }
+
         function getCSVNamesFormatted() {
             if (!window.csvMembers || window.csvMembers.length === 0) return '';
             
@@ -405,11 +446,11 @@
         function generateEmail() {
             const aircraftType = document.getElementById('aircraftType').value;
             const flightNumber = document.getElementById('flightNumber').value;
-            const route = document.getElementById('route').value;
+            const route = document.getElementById('route').value.toUpperCase();
             const flightDate = document.getElementById('flightDate').value;
             const yourName = document.getElementById('yourName').value;
-            const sectorDesignator = document.getElementById('sectorDesignator').value;
-            const ifrTarget = document.getElementById('ifrTarget').value;
+            const sectorDesignator = document.getElementById('sectorDesignator').value.toUpperCase();
+            const ifrTarget = document.getElementById('ifrTarget').value.toUpperCase();
             
             let emailContent = `Flight Details:
 Aircraft: ${aircraftType}
@@ -447,10 +488,10 @@ Ensure the inflight retail commencement is announced in Economy class and presen
                 emailContent += `\nIFR target for ${ifrTarget}`;
             }
 
-            const legroom = document.getElementById('legroom').value;
-            const bulkhead = document.getElementById('bulkhead').value;
-            const yj = document.getElementById('yj').value;
-            const jf = document.getElementById('jf').value;
+            const legroom = document.getElementById('legroom').value.toUpperCase();
+            const bulkhead = document.getElementById('bulkhead').value.toUpperCase();
+            const yj = document.getElementById('yj').value.toUpperCase();
+            const jf = document.getElementById('jf').value.toUpperCase();
 
             if (legroom || bulkhead || yj || jf) {
                 emailContent += '\n\nUpgrade prices:';
@@ -464,8 +505,28 @@ Ensure the inflight retail commencement is announced in Economy class and presen
 
 Positions have been assigned according to your experience and preferences. Positions are assigned for ${sectorDesignator}.\n`;
 
+            // Add Leaders section
+            emailContent += '\nLeaders:';
+            ['PUR', 'CSV1', 'CSV2'].forEach(pos => {
+                const crewSelect = document.getElementById(`pos${pos}`);
+                if (crewSelect && crewSelect.value) {
+                    const selectedOption = crewSelect.options[crewSelect.selectedIndex];
+                    emailContent += `\n${pos === 'CSV1' || pos === 'CSV2' ? 'CSV' : pos}: ${selectedOption.text}`;
+                }
+            });
+
             if (aircraftType === 'B777') {
-                [...aircraftPositions.B777.main, ...aircraftPositions.B777.assist].forEach(pos => {
+                emailContent += '\n\nMain Positions:';
+                aircraftPositions.B777.main.forEach(pos => {
+                    const crewSelect = document.getElementById(`pos${pos}`);
+                    if (crewSelect && crewSelect.value) {
+                        const selectedOption = crewSelect.options[crewSelect.selectedIndex];
+                        emailContent += `\n${pos}: ${selectedOption.text}`;
+                    }
+                });
+
+                emailContent += '\n\nA Positions & Others:';
+                aircraftPositions.B777.assist.forEach(pos => {
                     const crewSelect = document.getElementById(`pos${pos}`);
                     if (crewSelect && crewSelect.value) {
                         const selectedOption = crewSelect.options[crewSelect.selectedIndex];
@@ -473,7 +534,7 @@ Positions have been assigned according to your experience and preferences. Posit
                     }
                 });
             } else if (aircraftType === 'A380') {
-                emailContent += '\nMain Deck:';
+                emailContent += '\n\nMain Deck:';
                 aircraftPositions.A380.main_deck.forEach(pos => {
                     const crewSelect = document.getElementById(`pos${pos}`);
                     if (crewSelect && crewSelect.value) {
@@ -491,13 +552,22 @@ Positions have been assigned according to your experience and preferences. Posit
                     }
                 });
 
-                emailContent += '\n\nAssist Positions:';
+                emailContent += '\n\nA Positions & Others:';
                 aircraftPositions.A380.assist.forEach(pos => {
                     const crewSelect = document.getElementById(`pos${pos}`);
                     if (crewSelect && crewSelect.value) {
                         const selectedOption = crewSelect.options[crewSelect.selectedIndex];
                         emailContent += `\n${pos}: ${selectedOption.text}`;
                     }
+                });
+            }
+
+            // Add unassigned crew
+            const unassignedCrew = getUnassignedCrew();
+            if (unassignedCrew.length > 0) {
+                emailContent += '\n\nUnassigned Crew:';
+                unassignedCrew.forEach(crew => {
+                    emailContent += `\n${crew.grade} - ${crew.name}`;
                 });
             }
 
