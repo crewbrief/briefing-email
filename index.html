@@ -336,53 +336,52 @@ function parseCrewData() {
         return crewMembers.filter(cm => !assignedStaffNumbers.includes(cm.staffNumber));
     }
 
-    function generateEmail() {
-        const name = document.getElementById('crewMemberName').value;
-        const sectorDesignator = document.getElementById('sectorDesignator').value;
-        const ifrTarget = document.getElementById('ifrTarget').value;
-        
-        const csvs = crewMembers
-            .filter(cm => cm.grade === 'CSV')
-            .map(cm => cm.name.split(' ')[0]);
-        
-        const csvList = csvs.length > 1 
-            ? `${csvs.slice(0, -1).join(', ')} and ${csvs.slice(-1)}`
-            : csvs[0];
+function generateEmail() {
+    const name = document.getElementById('crewMemberName').value;
+    const sectorDesignator = document.getElementById('sectorDesignator').value;
+    const ifrTarget = document.getElementById('ifrTarget').value;
+    
+    const csvs = crewMembers
+        .filter(cm => cm.grade === 'CSV')
+        .map(cm => cm.name.split(' ')[0]);
+    
+const csvGreeting = csvs.length > 1 
+    ? `Together with seniors ${csvs.slice(0, -1).join(', ')} and ${csvs.slice(-1)}`
+    : `Together with senior ${csvs[0]}`;
 
-        const leaders = crewMembers
-            .filter(cm => ['PUR', 'CSV'].includes(cm.grade))
-            .sort((a, b) => {
-                // Sort PUR first, then CSV
-                if (a.grade === 'PUR') return -1;
-                if (b.grade === 'PUR') return 1;
-                return 0;
-            })
-            .map(cm => `${cm.grade} ${cm.name}`)
-            .join('\n');
+    const leaders = crewMembers
+        .filter(cm => ['PUR', 'CSV'].includes(cm.grade))
+        .sort((a, b) => {
+            if (a.grade === 'PUR') return -1;
+            if (b.grade === 'PUR') return 1;
+            return 0;
+        })
+        .map(cm => `${cm.grade} ${cm.name}`)
+        .join('\n');
 
-        const positions = Object.entries(positionAssignments)
-            .filter(([_, staffNum]) => staffNum)
-            .map(([pos, staffNum]) => {
-                const crew = crewMembers.find(cm => cm.staffNumber === staffNum);
-                return `${pos}: ${crew.name} (${crew.grade})`;
-            })
-            .join('\n');
+    const positions = Object.entries(positionAssignments)
+        .filter(([_, staffNum]) => staffNum)
+        .map(([pos, staffNum]) => {
+            const crew = crewMembers.find(cm => cm.staffNumber === staffNum);
+            return `${pos}: ${crew.name} (${crew.grade})`;
+        })
+        .join('\n');
 
-        const unassigned = getUnassignedCrew()
-            .map(cm => `${cm.name} (${cm.grade})`)
-            .join('\n');
+    const unassignedCrew = getUnassignedCrew();
+    const unassignedSection = unassignedCrew.length > 0 ? 
+        `\nUnassigned Crew:\n${unassignedCrew.map(cm => `${cm.name} (${cm.grade})`).join('\n')}` : '';
 
-        const upgradePrices = [
-    document.getElementById('legroom').value ? `Legroom: ${document.getElementById('legroom').value}` : null,
-    document.getElementById('bulkhead').value ? `Bulkhead: ${document.getElementById('bulkhead').value}` : null,
-    document.getElementById('yj').value ? `Y/J: ${document.getElementById('yj').value}` : null,
-    document.getElementById('jf').value ? `J/F: ${document.getElementById('jf').value}` : null
-].filter(price => price !== null).join('\n');
+    const upgradePrices = [
+        document.getElementById('legroom').value ? `Legroom: ${document.getElementById('legroom').value}` : null,
+        document.getElementById('bulkhead').value ? `Bulkhead: ${document.getElementById('bulkhead').value}` : null,
+        document.getElementById('yj').value ? `Y/J: ${document.getElementById('yj').value}` : null,
+        document.getElementById('jf').value ? `J/F: ${document.getElementById('jf').value}` : null
+    ].filter(price => price !== null).join('\n');
 
-const emailTemplate = `Hello ladies and gents,
+    const emailTemplate = `Hello ladies and gents,
 
 My name is ${name}, I am from Romania and it is my pleasure to be your purser on this flight.
-Together with seniors ${csvList}, we will support you, guide you and work alongside you at all times.
+${csvGreeting}, we will support you, guide you and work alongside you at all times.
 I want you to feel comfortable approaching us in any regards, be it professional or personal.
 The flight deck crew are part of the team and it is important for you to know and use their names. It's a GCAA requirement, as well as a sign of respect for our colleagues.
 
@@ -400,7 +399,7 @@ Inflight retail:
 Ensure the inflight retail commencement is announced in Economy class and present in the cabin. Please ensure pre-order container is checked and follow up with me.
 ${ifrTarget ? `IFR target: ${ifrTarget}` : ''}
 
-${upgradePrices ? `\nUpgrade prices:\n${upgradePrices}` : ''}
+${upgradePrices ? `Upgrade prices:\n${upgradePrices}` : ''}
 
 I trust each one of you to bring your cheerful personality and kindness on our flight, to create special moments for our customers and deliver Emirates Excellence.
 
@@ -410,17 +409,14 @@ Leaders:
 ${leaders}
 
 Position Assignments:
-${positions}
-
-Unassigned Crew:
-${unassigned}
+${positions}${unassignedSection}
 
 See you all soon,
 ${name}`;
 
-        document.getElementById('emailOutput').textContent = emailTemplate;
-        document.getElementById('copyEmailBtn').style.display = 'inline-block';
-    }
+    document.getElementById('emailOutput').textContent = emailTemplate;
+    document.getElementById('copyEmailBtn').style.display = 'inline-block';
+}
 
     function copyEmail() {
         const emailText = document.getElementById('emailOutput').textContent;
