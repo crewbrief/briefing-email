@@ -207,28 +207,32 @@
         element.value = element.value.replace(/\b\w/g, l => l.toUpperCase());
     }
 
-    function parseCrewData() {
-        const crewList = document.getElementById('crewList').value.trim().split('\n');
-        crewMembers = [];
-        let seenMembers = new Set();
+function parseCrewData() {
+    const crewList = document.getElementById('crewList').value.trim().split('\n');
+    crewMembers = [];
+    let seenMembers = new Set();
+    
+    for (let i = 0; i < crewList.length; i++) {
+        const grade = crewList[i]?.trim();
         
-        // Process the list in groups of 3 lines
-        for (let i = 0; i < crewList.length; i++) {
-            const grade = crewList[i]?.trim();
-            const name = crewList[i + 1]?.trim();
-            const staffNumber = crewList[i + 2]?.trim();
+        // Skip non-relevant lines
+        if (!grade || grade === "User Presence" || grade === "Trip 215 (Positioning)") {
+            continue;
+        }
 
-            // Skip non-relevant lines
-            if (!grade || grade === "User Presence" || grade === "Trip 215 (Positioning)") {
-                continue;
-            }
+        // Check if we have a valid grade
+        if (['PUR', 'CSV', 'FG1', 'GR1', 'GR2', 'CSA'].includes(grade)) {
+            const nextLine = crewList[i + 1]?.trim();
+            const thirdLine = crewList[i + 2]?.trim();
+            const fourthLine = crewList[i + 3]?.trim();
 
-            // Check if we have a valid crew member entry (grade, name, staff number sequence)
-            if (['PUR', 'CSV', 'FG1', 'GR1', 'GR2', 'CSA'].includes(grade) && 
-                name && 
-                staffNumber?.match(/^S\d{6}$/)) {
-                
+            // Check if it's mobile format (4 lines) or regular format (3 lines)
+            if (fourthLine?.match(/^S\d{6}$/)) {
+                // Mobile format: grade, first name, full name, staff number
+                const name = thirdLine;
+                const staffNumber = fourthLine;
                 const memberKey = `${name}-${grade}-${staffNumber}`;
+                
                 if (!seenMembers.has(memberKey)) {
                     crewMembers.push({
                         name: name,
@@ -237,13 +241,28 @@
                     });
                     seenMembers.add(memberKey);
                 }
-                // Skip the next two lines since we've processed them
-                i += 2;
+                i += 3; // Skip next 3 lines as we've processed them
+            } else if (thirdLine?.match(/^S\d{6}$/)) {
+                // Regular format: grade, name, staff number
+                const name = nextLine;
+                const staffNumber = thirdLine;
+                const memberKey = `${name}-${grade}-${staffNumber}`;
+                
+                if (!seenMembers.has(memberKey)) {
+                    crewMembers.push({
+                        name: name,
+                        grade: grade,
+                        staffNumber: staffNumber
+                    });
+                    seenMembers.add(memberKey);
+                }
+                i += 2; // Skip next 2 lines as we've processed them
             }
         }
-
-        updatePositionsLayout();
     }
+
+    updatePositionsLayout();
+}
 
     function createPositionDropdown(position) {
         const div = document.createElement('div');
