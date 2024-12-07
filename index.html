@@ -136,10 +136,9 @@
     <div class="section">
         <h2>Crew Data</h2>
         <div class="form-group">
-            <label for="crewList">Paste Crew List</label>
-            <textarea id="crewList" rows="5" placeholder="Paste crew list here"></textarea>
+             <textarea id="crewList" rows="5" placeholder="Paste crew list here"></textarea>
         </div>
-        <button class="btn btn-primary" onclick="parseCrewData()">Parse Crew Data v2.0</button>
+        <button class="btn btn-primary" onclick="parseCrewData()">Parse Crew Data v2.1</button>
     </div>
 
     <div id="positionsSection" class="section" style="display: none;">
@@ -355,13 +354,13 @@
             .join('\n');
 
         const upgradePrices = [
-            `Legroom: ${document.getElementById('legroom').value}`,
-            `Bulkhead: ${document.getElementById('bulkhead').value}`,
-            `Y/J: ${document.getElementById('yj').value}`,
-            `J/F: ${document.getElementById('jf').value}`
-        ].join('\n');
+    document.getElementById('legroom').value ? `Legroom: ${document.getElementById('legroom').value}` : null,
+    document.getElementById('bulkhead').value ? `Bulkhead: ${document.getElementById('bulkhead').value}` : null,
+    document.getElementById('yj').value ? `Y/J: ${document.getElementById('yj').value}` : null,
+    document.getElementById('jf').value ? `J/F: ${document.getElementById('jf').value}` : null
+].filter(price => price !== null).join('\n');
 
-        const emailTemplate = `Hello ladies and gents,
+const emailTemplate = `Hello ladies and gents,
 
 My name is ${name}, I am from Romania and it is my pleasure to be your purser on this flight.
 Together with seniors ${csvList}, we will support you, guide you and work alongside you at all times.
@@ -380,10 +379,10 @@ We are always improving the way we do things so keeping up-to-date is vital.
 
 Inflight retail:
 Ensure the inflight retail commencement is announced in Economy class and present in the cabin. Please ensure pre-order container is checked and follow up with me.
-${ifrTarget}
+${ifrTarget ? `IFR target: ${ifrTarget}` : ''}
 
 Upgrade prices:
-${upgradePrices}
+${upgradePrices ? `\nUpgrade prices:\n${upgradePrices}` : ''}
 
 I trust each one of you to bring your cheerful personality and kindness on our flight, to create special moments for our customers and deliver Emirates Excellence.
 
